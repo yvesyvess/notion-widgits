@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Week Widget - Pink Fish Yellow</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Finger+Paint&display=swap" rel="stylesheet">
+
+    <style>
+      html,
+      body 
+      {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: transparent;
+      }
+
+      /* outter i.e widget container box */
+      .card 
+      {
+        width: 100%;
+        max-width: 360px;
+        height: 110px;
+        border-radius: 18px;
+        position: relative;
+        overflow: hidden;
+        background-size: cover;
+        background-position: center;
+        background-image: url('water.jpg');
+        box-shadow:
+          0 8px 25px rgba(239, 197, 236, 0.4),
+          inset 0 0 40px rgba(224, 148, 205, 0.2);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* soft haze in middle */
+      .haze {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at 30% 30%,
+          rgba(126, 235, 241, 0.25),
+          transparent 70%
+        );
+        z-index: 1;
+      }
+
+      /* the small clear inner box */
+      .small-inner-glass-box
+      {
+        position: absolute;
+        width: 82%;
+        height: 64%;
+        background: rgba(127, 197, 221, 0.25);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        z-index: 3;
+        box-shadow: 
+          inset 0 0 0 1px rgba(155, 218, 237, 0.3),
+          0 4px 15px rgba(192, 217, 221, 0.15);
+      }
+
+      /* bubble-style 3D text for week */
+      .week 
+      {
+        position: absolute;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 35px;
+        font-family: "Finger Paint", sans-serif;
+        font-weight: 400;
+        font-style: normal;
+        color:#f0f3f4;
+        text-shadow:
+          0 1px 0 #0e5e5a,
+          0 2px 0 #0e2b2a,
+          0 3px 6px rgba(175, 223, 231, 0.3);
+        z-index: 4;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      /* softer bubble text for date */
+      .date {
+        position: absolute;
+        top: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size:20px;
+        font-family: "Finger Paint", sans-serif;
+        font-weight: 400;
+        font-style: normal;
+        color: #fdfdfd;
+        z-index: 4;
+        letter-spacing: 0.02em;
+        text-shadow:
+          0 1px 0 #0e5e5a,
+          0 2px 0 #0e2b2a,
+          0 3px 6px rgba(175, 223, 231, 0.3);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="card">
+      <div class="haze"></div>
+      <div class="small-inner-glass-box"></div>
+      <div id="week" class="week"></div>
+      <div id="date" class="date"></div>
+    </div>
+
+    <script>
+      const projectStartDate = new Date("2026-07-20");
+      const currentDate = new Date();
+      const msPerDay = 86400000;
+
+      const daysDiff = Math.floor((currentDate - projectStartDate) / msPerDay);
+      const weekNumber = daysDiff < 0 ? 1 : Math.floor(daysDiff / 7) + 1;
+
+      const weekStart = new Date(projectStartDate);
+      weekStart.setDate(projectStartDate.getDate() + (weekNumber - 1) * 7);
+
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+
+      const fmt = (d) =>
+        d.toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "short",
+        });
+
+      document.getElementById("week").textContent = `WEEK ${weekNumber}`;
+      document.getElementById("date").textContent =
+        `${fmt(weekStart)} – ${fmt(weekEnd)}`;
+    </script>
+  </body>
+</html>
