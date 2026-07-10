@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Week Widget – Pastel Pink</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: transparent;
+        font-family: "Fredoka", sans-serif;
+      }
+
+      .card {
+        width: 100%;
+        max-width: 360px;
+        height: 110px;
+        border-radius: 18px;
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(
+          135deg,
+          #e89aad 0%,   /* darker pastel pink */
+          #f2a6b8 50%,  /* medium pastel pink */
+          #eaa6b0 100%  /* soft muted pink */
+        );
+        box-shadow:
+          0 8px 25px rgba(255, 182, 193, 0.4),
+          inset 0 0 40px rgba(255, 255, 255, 0.2);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* soft haze */
+      .haze {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at 30% 30%,
+          rgba(255, 255, 255, 0.25),
+          transparent 70%
+        );
+        z-index: 1;
+      }
+
+      .inner-glass {
+        position: absolute;
+        width: 82%;
+        height: 64%;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        z-index: 3;
+        box-shadow: 
+          inset 0 0 0 1px rgba(255, 182, 193, 0.3),
+          0 4px 15px rgba(255, 182, 193, 0.15);
+      }
+
+      /* bubble-style 3D text for week */
+      .week {
+        position: absolute;
+        top: 22px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 28px;
+        font-weight: 700;
+        color: #fff;
+        z-index: 4;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        text-shadow:
+          0 1px 0 #e89aad,
+          0 2px 0 #e89aad,
+          0 3px 0 #e89aad,
+          0 4px 8px rgba(150, 70, 90, 0.35);
+      }
+
+      /* softer bubble text for date */
+      .date {
+        position: absolute;
+        top: 62px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+        z-index: 4;
+        letter-spacing: 0.02em;
+        text-shadow:
+          0 1px 0 #e89aad,
+          0 2px 0 #e89aad,
+          0 3px 6px rgba(150, 70, 90, 0.3);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="card">
+      <div class="haze"></div>
+      <div class="inner-glass"></div>
+      <div id="week" class="week"></div>
+      <div id="date" class="date"></div>
+    </div>
+
+    <script>
+      const projectStartDate = new Date("2026-02-16");
+      const currentDate = new Date();
+      const msPerDay = 86400000;
+
+      const daysDiff = Math.floor((currentDate - projectStartDate) / msPerDay);
+      const weekNumber = daysDiff < 0 ? 1 : Math.floor(daysDiff / 7) + 1;
+
+      const weekStart = new Date(projectStartDate);
+      weekStart.setDate(projectStartDate.getDate() + (weekNumber - 1) * 7);
+
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+
+      const fmt = (d) =>
+        d.toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "short",
+        });
+
+      document.getElementById("week").textContent = `WEEK ${weekNumber}`;
+      document.getElementById("date").textContent =
+        `${fmt(weekStart)} – ${fmt(weekEnd)}`;
+    </script>
+  </body>
+</html>
