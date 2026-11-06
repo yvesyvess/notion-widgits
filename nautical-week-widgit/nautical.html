@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Curtin Academic Week Widget</title>
+
+  <style>
+    :root {
+      --ocean: #285d61;
+      --deep-ocean: #1c484d;
+      --ivory: #f0e9d6;
+      --brass: #c6a878;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 4px;
+    }
+
+    .card {
+      position: relative;
+      width: 100%;
+      max-width: 360px;
+      height: 120px;
+      border-radius: 12px;
+      overflow: hidden;
+
+      background: linear-gradient(
+        115deg,
+        var(--ocean),
+        var(--deep-ocean)
+      );
+
+      box-shadow: 0 3px 12px rgba(15, 48, 51, 0.13);
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 7px;
+      padding: 12px 18px;
+
+      color: var(--ivory);
+      text-align: center;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 7px;
+      border: 1px solid rgba(198, 168, 120, 0.65);
+      border-radius: 7px;
+      pointer-events: none;
+    }
+
+    .semester {
+      font-family: Georgia, serif;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      color: var(--brass);
+      text-transform: uppercase;
+    }
+
+    .heading {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(20px, 7vw, 29px);
+      font-weight: 400;
+      line-height: 1.1;
+      letter-spacing: 0.055em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: var(--ivory);
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 90px;
+      height: 5px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--brass);
+    }
+
+    .divider span {
+      width: 5px;
+      height: 5px;
+      border: 1px solid var(--brass);
+      transform: rotate(45deg);
+    }
+
+    .date {
+      font-family: Georgia, serif;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+      color: #e5dcc4;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="card" aria-live="polite">
+    <div class="semester" id="semester"></div>
+    <div class="heading" id="heading"></div>
+
+    <div class="divider" aria-hidden="true">
+      <span></span>
+    </div>
+
+    <div class="date" id="date"></div>
+  </main>
+
+  <script>
+    /*
+     * CURTIN UNIVERSITY
+     * Academic Calendar 2027
+     *
+     * Standard Semester 1 and Semester 2.
+     * Summer School is not included.
+     */
+
+    // Set to a date such as "2027-08-18" for testing.
+    // Use null for the actual current date.
+    const PREVIEW_DATE = null;
+
+    const semesters = [
+      {
+        number: 1,
+
+        orientation: [
+          "2027-02-08", "2027-02-14"
+        ],
+
+        teaching: [
+          "2027-02-15", "2027-05-23"
+        ],
+
+        tuitionFree: [
+          ["2027-03-29", "2027-04-04"],
+          ["2027-04-19", "2027-04-25"]
+        ],
+
+        study: [
+          "2027-05-24", "2027-05-30"
+        ],
+
+        exams: [
+          "2027-05-31", "2027-06-13"
+        ]
+      },
+
+      {
+        number: 2,
+
+        orientation: [
+          "2027-07-12", "2027-07-18"
+        ],
+
+        teaching: [
+          "2027-07-19", "2027-10-24"
+        ],
+
+        tuitionFree: [
+          ["2027-08-16", "2027-08-22"],
+          ["2027-09-27", "2027-10-03"]
+        ],
+
+        study: [
+          "2027-10-25", "2027-10-31"
+        ],
+
+        exams: [
+          "2027-11-01", "2027-11-14"
+        ]
+      }
+    ];
+
+    /*
+     * DATE UTILITIES
+     */
+
+    const MS_PER_DAY = 86400000;
+
+    function parseDate(value) {
+      const [year, month, day] =
+        value.split("-").map(Number);
+
+      return new Date(year, month - 1, day, 12);
+    }
+
+    function getToday() {
+      return PREVIEW_DATE
+        ? parseDate(PREVIEW_DATE)
+        : new Date();
+    }
+
+    // Calendar-day comparison avoids daylight-saving errors.
+    function dayIndex(date) {
+      return Date.UTC(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+      ) / MS_PER_DAY;
+    }
+
+    function indexOfDate(value) {
+      return dayIndex(parseDate(value));
+    }
+
+    function inRange(today, range) {
+      return (
+        today >= indexOfDate(range[0]) &&
+        today <= indexOfDate(range[1])
+      );
+    }
+
+    function getWeekNumber(today, startDate) {
+      return (
+        Math.floor(
+          (today - indexOfDate(startDate)) / 7
+        ) + 1
+      );
+    }
+
+    function getWeekRange(date) {
+      const mondayOffset = (date.getDay() + 6) % 7;
+
+      const monday = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate() - mondayOffset,
+        12
+      );
+
+      const sunday = new Date(
+        monday.getFullYear(),
+        monday.getMonth(),
+        monday.getDate() + 6,
+        12
+      );
+
+      const format = (d) =>
+        d.toLocaleDateString("en-AU", {
+          day: "numeric",
+          month: "short"
+        });
+
+      return `${format(monday)} – ${format(sunday)}`;
+    }
+
+    /*
+     * ACADEMIC STATUS
+     */
+
+    function getAcademicStatus(date) {
+      const today = dayIndex(date);
+
+      if (date.getFullYear() !== 2027) {
+        return {
+          semester: "CURTIN · 2027",
+          heading: date.getFullYear() < 2027
+            ? "ACADEMIC YEAR"
+            : "YEAR COMPLETE",
+          detail: date.getFullYear() < 2027
+            ? "Begins 8 February 2027"
+            : "2027 Calendar Ended"
+        };
+      }
+
+      for (const sem of semesters) {
+
+        const label = `SEMESTER ${sem.number}`;
+
+        // Orientation
+        if (inRange(today, sem.orientation)) {
+          return {
+            semester: label,
+            heading: "ORIENTATION",
+            detail: "Orientation Week"
+          };
+        }
+
+        // Teaching period
+        if (inRange(today, sem.teaching)) {
+          const week = getWeekNumber(
+            today,
+            sem.teaching[0]
+          );
+
+          // Tuition-free weeks take priority.
+          const isTuitionFree = sem.tuitionFree.some(
+            range => inRange(today, range)
+          );
+
+          if (isTuitionFree) {
+            return {
+              semester: `${label} · WEEK ${week}`,
+              heading: "TUITION-FREE",
+              detail: "Non-Teaching Week"
+            };
+          }
+
+          return {
+            semester: `${label} · TEACHING`,
+            heading: `WEEK ${week}`,
+            detail: "Teaching Week"
+          };
+        }
+
+        // Study week
+        if (inRange(today, sem.study)) {
+          return {
+            semester: label,
+            heading: "STUDY WEEK",
+            detail: "Exam Preparation"
+          };
+        }
+
+        // Examination period
+        if (inRange(today, sem.exams)) {
+          const examWeek = getWeekNumber(
+            today,
+            sem.exams[0]
+          );
+
+          return {
+            semester: label,
+            heading: `EXAM WEEK ${examWeek}`,
+            detail: "Examination Period"
+          };
+        }
+      }
+
+      // Between Semester 1 and Semester 2
+      if (
+        today > indexOfDate(semesters[0].exams[1]) &&
+        today < indexOfDate(semesters[1].orientation[0])
+      ) {
+        return {
+          semester: "CURTIN · 2027",
+          heading: "SEMESTER BREAK",
+          detail: "Mid-Year Holidays"
+        };
+      }
+
+      // Before Semester 1 and after Semester 2
+      return {
+        semester: "CURTIN · 2027",
+        heading: "SUMMER BREAK",
+        detail: "University Holidays"
+      };
+    }
+
+    /*
+     * WIDGET RENDERING
+     */
+
+    function updateWidget() {
+      const date = getToday();
+      const status = getAcademicStatus(date);
+
+      document.getElementById("semester").textContent =
+        status.semester;
+
+      document.getElementById("heading").textContent =
+        status.heading;
+
+      document.getElementById("date").textContent =
+        `${status.detail} · ${getWeekRange(date)}`;
+    }
+
+    updateWidget();
+
+    // Refresh automatically while the widget is open.
+    setInterval(updateWidget, 60000);
+
+    // Refresh when returning to the browser tab.
+    document.addEventListener(
+      "visibilitychange",
+      () => {
+        if (!document.hidden) updateWidget();
+      }
+    );
+  </script>
+</body>
+</html>
